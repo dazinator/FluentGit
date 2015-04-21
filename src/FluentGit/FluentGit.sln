@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentGit", "FluentGit.csproj", "{22E2B21C-229B-4F2E-B707-AFBBD3D1D925}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentGit.Tests", "..\FluentGit.Tests\FluentGit.Tests.csproj", "{8A3B347B-7A18-4ADC-B793-A34C9FC04DCE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22E2B21C-229B-4F2E-B707-AFBBD3D1D925}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22E2B21C-229B-4F2E-B707-AFBBD3D1D925}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22E2B21C-229B-4F2E-B707-AFBBD3D1D925}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22E2B21C-229B-4F2E-B707-AFBBD3D1D925}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A3B347B-7A18-4ADC-B793-A34C9FC04DCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A3B347B-7A18-4ADC-B793-A34C9FC04DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A3B347B-7A18-4ADC-B793-A34C9FC04DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A3B347B-7A18-4ADC-B793-A34C9FC04DCE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
