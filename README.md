@@ -25,7 +25,7 @@ FluentRepo.Clone
 
 ## Why?
 
-Because I like it, and also, becuase I can! ;)
+Because I like it and because I can! ;)
 
 
 
