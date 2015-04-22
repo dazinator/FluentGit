@@ -8,11 +8,11 @@ using System.Text;
 
 namespace FluentGit.Tests
 {
-    public static class GitRepoUtils
+    public static class TestUtils
     {
 
-        private static readonly ILog Log = LogProvider.GetCurrentClassLogger(); 
-     
+        private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
+
         public static string GetUniqueTempFolder(string parentFolderName)
         {
             var currentDir = Path.GetTempPath();
@@ -22,23 +22,24 @@ namespace FluentGit.Tests
 
         public static void DeleteGitDirectory(string path)
         {
-            var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };           
+            var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };
             if (directory.Name != ".git")
             {
                 // Does this folder contain the git directory?
                 var gitFolderDirectory = directory.GetDirectories("*.git").FirstOrDefault();
-                if(gitFolderDirectory != null)                {
+                if (gitFolderDirectory != null)
+                {
 
                     directory = gitFolderDirectory;
                 }
                 else
                 {
                     throw new ArgumentException("Cannot delete a directory that isn't a git repository.");
-                }             
+                }
             }
 
             DeleteDirectory(directory);
-         
+
         }
 
         public static void DeleteDirectory(DirectoryInfo directory)
@@ -93,6 +94,24 @@ namespace FluentGit.Tests
         {
             repo.Stage(filePath);
             return repo.Commit(comment, SignatureNow(), SignatureNow());
+        }
+
+        public static bool IsBareRepo(IRepository repository)
+        {
+            if (repository != null)
+            {
+                // verify there is no seperate .git directory (bare clone)
+                var directoryInfo = new DirectoryInfo(repository.Info.Path);
+                if (directoryInfo.Name == ".git")
+                {
+                    return false;
+                }
+                var gitFolders = directoryInfo.GetDirectories("*.git", SearchOption.AllDirectories);
+                return gitFolders == null || gitFolders.Count() == 0;
+            }
+
+            return false;
+
         }
 
         public static Signature SignatureNow()

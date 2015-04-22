@@ -45,6 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="TransformItemEnumerator.cs" />
+    <Compile Include="TransformingEnumerable.cs" />
+    <Compile Include="IFluentEnumerable.cs" />
     <Compile Include="Repo.cs" />
     <Compile Include="GitBranchName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

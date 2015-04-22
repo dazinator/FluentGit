@@ -8,22 +8,23 @@ using System.Text;
 namespace FluentGit.Tests
 {
     public abstract class BaseEmptyRepoTest
-    {      
+    {
 
+        protected const string ParentTempFolderName = "unitTest";
 
 
         [SetUp]
         public virtual void Setup()
         {
-            GitRepoPath = GitRepoUtils.GetUniqueTempFolder("unitTest");
-            var testOriginRepo = GitRepoUtils.CreateEmptyTestRepo(GitRepoPath);            
+            GitRepoPath = TestUtils.GetUniqueTempFolder(ParentTempFolderName);
+            var testOriginRepo = TestUtils.CreateEmptyTestRepo(GitRepoPath);            
         }
 
 
         [TearDown]
         public virtual void TearDown()
         {
-            GitRepoUtils.DeleteGitDirectory(GitRepoPath);
+            TestUtils.DeleteGitDirectory(GitRepoPath);
             Directory.Delete(GitRepoPath);
         }
 

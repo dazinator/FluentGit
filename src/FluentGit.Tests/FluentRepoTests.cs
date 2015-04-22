@@ -13,24 +13,109 @@ namespace FluentGit.Tests
     public class FluentRepoTests : BaseEmptyRepoTest
     {
 
+        private string _CloneDir;
+
         [Test]
         public void Can_Load_Local_Repo_By_Folder_Path()
         {
-            var repo = new Repo().Load(GitRepoPath);
+            var repo = new FluentRepo().Load(GitRepoPath);
         }
 
         [Test]
-        public void Can_Clone_Repo()
+        public void Can_Clone_Local_Repo()
         {
 
             // TODO: in test setup, create a local git repo to use a source for the clone.
             // In test tear down, remove the source git repo, and the newly created clone repo.
-            var repo = new Repo().Clone()
-                                       .FromUrl("http://somegiturl.git")
-                                       .ToDirectory("some folder")
-                                       .Bare()
-                                       .WithCredentials("username", "password")
+            _CloneDir = TestUtils.GetUniqueTempFolder(ParentTempFolderName);
+
+            // Act
+            var repo = new FluentRepo().Clone()
+                                       .FromDirectory(GitRepoPath)
+                                       .ToDirectory(_CloneDir)
                                        .Obtain();
+
+            // Assert
+            // 1. verify the clone now exists.
+            var repository = new Repository(_CloneDir);
+            Assert.That(repository, Is.Not.Null);
+            Assert.IsFalse(TestUtils.IsBareRepo(repository));
+
+        }
+
+        [Test]
+        public void Can_Bare_Clone_Local_Repo()
+        {
+
+            // TODO: in test setup, create a local git repo to use a source for the clone.
+            // In test tear down, remove the source git repo, and the newly created clone repo.
+            _CloneDir = TestUtils.GetUniqueTempFolder(ParentTempFolderName);
+
+            // Act
+            var repo = new FluentRepo().Clone()
+                                       .FromDirectory(GitRepoPath)
+                                       .ToDirectory(_CloneDir)
+                                       .Bare()
+                                       .Obtain();
+
+            // Assert
+            // 1. verify the clone now exists, and its a bare repo.
+            var repository = new Repository(_CloneDir);
+            Assert.IsTrue(TestUtils.IsBareRepo(repository));
+
+        }
+
+        [Test]
+        public void Can_Clone_Remote_Repo()
+        {
+
+            // TODO: in test setup, create a local git repo to use a source for the clone.
+            // In test tear down, remove the source git repo, and the newly created clone repo.
+            _CloneDir = TestUtils.GetUniqueTempFolder(ParentTempFolderName);
+
+            // Act
+            var repo = new FluentRepo().Clone()
+                                       .FromUrl("https://github.com/dazinator/FluentGit.git")
+                                       .ToDirectory(_CloneDir)
+                                       .Obtain();
+
+            // Assert
+            // 1. verify the clone now exists.
+            var repository = new Repository(_CloneDir);
+            Assert.That(repository, Is.Not.Null);
+            Assert.IsFalse(TestUtils.IsBareRepo(repository));
+        }
+
+        [Test]
+        public void Can_Bare_Clone_Remote_Repo()
+        {
+
+            // TODO: in test setup, create a local git repo to use a source for the clone.
+            // In test tear down, remove the source git repo, and the newly created clone repo.
+            _CloneDir = TestUtils.GetUniqueTempFolder(ParentTempFolderName);
+
+            // Act
+            var repo = new FluentRepo().Clone()
+                                       .FromUrl("https://github.com/dazinator/FluentGit.git")
+                                       .ToDirectory(_CloneDir)
+                                       .Bare()
+                                       .Obtain();
+
+            // Assert
+            // 1. verify the clone now exists.
+            var repository = new Repository(_CloneDir);
+            Assert.IsTrue(TestUtils.IsBareRepo(repository));
+
+        }
+
+        public override void TearDown()
+        {
+            base.TearDown();
+            var cloneDir = new DirectoryInfo(_CloneDir);
+            if (cloneDir.Exists)
+            {
+                TestUtils.DeleteDirectory(cloneDir);
+            }
 
         }
 

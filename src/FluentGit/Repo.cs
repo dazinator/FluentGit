@@ -1,6 +1,7 @@
 ﻿using FluentGit.Logging;
 using LibGit2Sharp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,12 +30,14 @@ namespace FluentGit
 
     }
 
-    public class Repo : IRepoFactoryBuilder,
+    public class FluentRepo : IRepoFactoryBuilder,
                         IRepoInstanceBuilder,
                         ICloneSourceOptionsBuilder,
                         ICloneFromUrlOptions,
                         ICloneFromLocalDirectoryOptions,
-                        ICloneAdditionalOptionsBuilder
+                        ICloneAdditionalOptionsBuilder,
+                        IRemoteInstanceBuilder,
+                        IBranchInstanceBuilder
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
@@ -43,6 +46,12 @@ namespace FluentGit
 
         private CloneArgs _cloneSetupArgs;
 
+        private FluentEnumerable<IBranchInfo> _branches;
+        private FluentEnumerable<IRemoteInfo> _remotes;
+
+        private BranchInfo _selectedBranch;
+
+
         public IRepoInstanceBuilder Load(string gitFolderPath)
         {
             var repoPath = Repository.Discover(gitFolderPath);
@@ -50,7 +59,7 @@ namespace FluentGit
             {
                 throw new ArgumentException("invalid repository path");
             }
-            _repository = new Repository(repoPath);
+            InitialiseRepo(repoPath);
             return this;
         }
 
@@ -63,15 +72,10 @@ namespace FluentGit
         }
 
         //// CONVERSION OPERATOR
-        //public static implicit operator Team(TeamBuilder tb)
+        //public static implicit operator IRepository(Repo repo)
         //{
-        //    return new Team(
-        //        tb.name,
-        //        tb.nickName,
-        //        tb.shirtColor,
-        //        tb.homeTown,
-        //        tb.ground);
-        //}       
+        //    return repo._repository;
+        //}
 
         ICloneFromUrlOptions ICloneSourceOptionsBuilder.FromUrl(string url)
         {
@@ -130,7 +134,8 @@ namespace FluentGit
             {
                 var repoPath = Repository.Clone(_cloneSetupArgs.GetSourcePath(), _cloneSetupArgs.CloneDestinationDirectory, cloneOptions);
                 this._clonedUsingOptions = cloneOptions;
-                this._repository = new Repository(repoPath);
+                InitialiseRepo(repoPath);
+
             }
             catch (Exception)
             {
@@ -140,6 +145,129 @@ namespace FluentGit
             return this;
 
         }
+
+        private void InitialiseRepo(string repoPath)
+        {
+            var repo = new Repository(repoPath);
+            if (this._repository != null)
+            {
+                this._repository.Dispose();
+            }
+            this._repository = repo;
+            InitialiseEnumerables();
+
+            // custom enumerator, that wraps the libgitsharp one, but casts each item our own builder type - IRemoteInstanceBuilder
+            return;
+        }
+
+        private void InitialiseEnumerables()
+        {
+            // We will wrap the underlying libgitsharp enumerators, with our own that implicitly cast types.
+            var remotesEnumerator = this._repository.Network.Remotes.GetEnumerator();
+            var castingEnumerator = new TransformItemEnumerator<Remote, IRemoteInfo>(remotesEnumerator, f => RemoteInfo.FromRemote(f, this));
+            this._remotes = new FluentEnumerable<IRemoteInfo>(castingEnumerator);
+
+            var branchesEnumerator = this._repository.Branches.GetEnumerator();
+            var castingBranchesEnumerator = new TransformItemEnumerator<Branch, IBranchInfo>(branchesEnumerator, f => BranchInfo.FromBranch(f, this));
+            this._branches = new FluentEnumerable<IBranchInfo>(castingBranchesEnumerator);
+        }
+
+        IFluentEnumerable<IBranchInfo> IRepoInstanceBuilder.Branches
+        {
+            get { return this._branches; }
+        }
+
+        IFluentEnumerable<IRemoteInfo> IRepoInstanceBuilder.Remotes
+        {
+            get { return this._remotes; }
+        }
+
+        //private Remote EnsureSingleRemoteIsDefined()
+        //{
+        //    var remotes = Repository.Network.Remotes;
+        //    var howMany = remotes.Count();
+
+        //    if (howMany == 1)
+        //    {
+        //        var remote = remotes.Single();
+
+        //        Log.InfoFormat("One remote found ({0} -> '{1}').", remote.Name, remote.Url);
+        //        return remote;
+        //    }
+
+        //    var message = string.Format("{0} remote(s) have been detected. When being run on a TeamCity agent, the Git repository is expected to bear one (and no more than one) remote.", howMany);
+        //    throw new InvalidOperationException(message);
+        //}
+
+        //private void NormalizeGitDirectory()
+        //{
+        //    var remote = EnsureSingleRemoteIsDefined();
+        //    EnsureRepoHasRefSpecs(remote);
+
+        //    Log.InfoFormat("Fetching from remote '{0}' using the following refspecs: {1}.", remote.Name, string.Join(", ", remote.FetchRefSpecs.Select(r => r.Specification)));
+
+        //    var fetchOptions = new FetchOptions();
+        //    fetchOptions.CredentialsProvider = (url, user, types) => _credentials;
+        //    Repository.Network.Fetch(remote, fetchOptions);
+
+        //    CreateMissingLocalBranchesFromRemoteTrackingOnes(remote.Name);
+        //    var headSha = Repository.Refs.Head.TargetIdentifier;
+
+        //    if (!Repository.Info.IsHeadDetached)
+        //    {
+        //        Log.InfoFormat("HEAD points at branch '{0}'.", headSha);
+        //        return;
+        //    }
+
+        //    Log.InfoFormat("HEAD is detached and points at commit '{0}'.", headSha);
+
+        //    // In order to decide whether a fake branch is required or not, first check to see if any local branches have the same commit SHA of the head SHA.
+        //    // If they do, go ahead and checkout that branch
+        //    // If no, go ahead and check out a new branch, using the known commit SHA as the pointer
+        //    var localBranchesWhereCommitShaIsHead = Repository.Branches.Where(b => !b.IsRemote && b.Tip.Sha == headSha).ToList();
+
+        //    if (localBranchesWhereCommitShaIsHead.Count > 1)
+        //    {
+        //        var names = string.Join(", ", localBranchesWhereCommitShaIsHead.Select(r => r.CanonicalName));
+        //        var message = string.Format("Found more than one local branch pointing at the commit '{0}'. Unable to determine which one to use ({1}).", headSha, names);
+        //        throw new InvalidOperationException(message);
+        //    }
+
+        //    if (localBranchesWhereCommitShaIsHead.Count == 0)
+        //    {
+        //        Log.InfoFormat("No local branch pointing at the commit '{0}'. Fake branch needs to be created.", headSha);
+        //        CreateFakeBranchPointingAtThePullRequestTip();
+        //    }
+        //    else
+        //    {
+        //        Log.InfoFormat("Checking out local branch 'refs/heads/{0}'.", localBranchesWhereCommitShaIsHead[0].Name);
+        //        var branch = Repository.Branches[localBranchesWhereCommitShaIsHead[0].Name];
+        //        Repository.Checkout(branch);
+        //    }
+        //}
+
+        //private void EnsureRepoHasRefSpecs(Remote remote)
+        //{
+        //    if (remote.FetchRefSpecs.Any(r => r.Source == "refs/heads/*"))
+        //        return;
+
+        //    var allBranchesFetchRefSpec = string.Format("+refs/heads/*:refs/remotes/{0}/*", remote.Name);
+        //    Log.InfoFormat("Adding refspec: {0}", allBranchesFetchRefSpec);
+        //    Repository.Network.Remotes.Update(remote, r => r.FetchRefSpecs.Add(allBranchesFetchRefSpec));
+        //}
+
+        internal IBranchInstanceBuilder SelectBranch(BranchInfo branchInfo)
+        {
+            _selectedBranch = branchInfo;
+            return this;
+        }
+
+        internal IRemoteInstanceBuilder SelectRemote(RemoteInfo remoteInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+
     }
 
     public interface IRepoFactoryBuilder
@@ -173,13 +301,95 @@ namespace FluentGit
 
     public interface IRepoInstanceBuilder
     {
-
-
+        IFluentEnumerable<IBranchInfo> Branches { get; }
+        IFluentEnumerable<IRemoteInfo> Remotes { get; }
     }
 
-    public interface IRepoBranchBuilder
+    public interface IRemoteInfo
+    {
+        string Name { get; }
+        string Url { get; }
+
+        IRemoteInstanceBuilder Use();
+    }
+
+    public interface IBranchInfo
+    {
+        string Name { get; }
+        IBranchInstanceBuilder Use();
+    }
+
+    public class RemoteInfo : IRemoteInfo
+    {
+        private Remote _remote;
+        private FluentRepo _repo;
+
+        private RemoteInfo(Remote remote, FluentRepo repo)
+        {
+            _remote = remote;
+            _repo = repo;
+        }
+
+        internal static RemoteInfo FromRemote(Remote remote, FluentRepo repo)
+        {
+            var remoteInfo = new RemoteInfo(remote, repo);
+            return remoteInfo;
+        }
+
+        string IRemoteInfo.Name
+        {
+            get { return this._remote.Name; }
+        }
+
+        string IRemoteInfo.Url
+        {
+            get { return this._remote.Url; }
+        }
+
+        IRemoteInstanceBuilder IRemoteInfo.Use()
+        {
+            return _repo.SelectRemote(this);
+        }
+    }
+
+    public class BranchInfo : IBranchInfo
+    {
+        private Branch _branch;
+        private FluentRepo _repo;
+
+        private BranchInfo(Branch branch, FluentRepo repo)
+        {
+            _branch = branch;
+            _repo = repo;
+        }
+
+        string IBranchInfo.Name
+        {
+            get { return _branch.Name; }
+        }
+
+        internal static BranchInfo FromBranch(Branch branch, FluentRepo repo)
+        {
+            var branchInfo = new BranchInfo(branch, repo);
+            return branchInfo;
+        }
+
+        IBranchInstanceBuilder IBranchInfo.Use()
+        {
+            return _repo.SelectBranch(this);
+        }
+    }
+
+    public interface IBranchInstanceBuilder
     {
 
+    }
+
+    public interface IRemoteInstanceBuilder
+    {
 
     }
+
+
+
 }
