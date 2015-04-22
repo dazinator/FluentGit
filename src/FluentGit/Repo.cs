@@ -35,9 +35,8 @@ namespace FluentGit
                         ICloneSourceOptionsBuilder,
                         ICloneFromUrlOptions,
                         ICloneFromLocalDirectoryOptions,
-                        ICloneAdditionalOptionsBuilder,
-                        IRemoteInstanceBuilder,
-                        IBranchInstanceBuilder
+                        ICloneAdditionalOptionsBuilder
+                      
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
@@ -46,10 +45,8 @@ namespace FluentGit
 
         private CloneArgs _cloneSetupArgs;
 
-        private FluentEnumerable<IBranchInfo> _branches;
-        private FluentEnumerable<IRemoteInfo> _remotes;
-
-        private BranchInfo _selectedBranch;
+        private FluentEnumerable<IBranchBuilder> _branches;
+        private FluentEnumerable<IRemoteBuilder> _remotes;      
 
 
         public IRepoInstanceBuilder Load(string gitFolderPath)
@@ -164,20 +161,20 @@ namespace FluentGit
         {
             // We will wrap the underlying libgitsharp enumerators, with our own that implicitly cast types.
             var remotesEnumerator = this._repository.Network.Remotes.GetEnumerator();
-            var castingEnumerator = new TransformItemEnumerator<Remote, IRemoteInfo>(remotesEnumerator, f => RemoteInfo.FromRemote(f, this));
-            this._remotes = new FluentEnumerable<IRemoteInfo>(castingEnumerator);
+            var castingEnumerator = new TransformItemEnumerator<Remote, IRemoteBuilder>(remotesEnumerator, f => RemoteBuilder.FromRemote(f, this));
+            this._remotes = new FluentEnumerable<IRemoteBuilder>(castingEnumerator);
 
             var branchesEnumerator = this._repository.Branches.GetEnumerator();
-            var castingBranchesEnumerator = new TransformItemEnumerator<Branch, IBranchInfo>(branchesEnumerator, f => BranchInfo.FromBranch(f, this));
-            this._branches = new FluentEnumerable<IBranchInfo>(castingBranchesEnumerator);
+            var castingBranchesEnumerator = new TransformItemEnumerator<Branch, IBranchBuilder>(branchesEnumerator, f => BranchBuilder.FromBranch(f, this));
+            this._branches = new FluentEnumerable<IBranchBuilder>(castingBranchesEnumerator);
         }
 
-        IFluentEnumerable<IBranchInfo> IRepoInstanceBuilder.Branches
+        IFluentEnumerable<IBranchBuilder> IRepoInstanceBuilder.Branches
         {
             get { return this._branches; }
         }
 
-        IFluentEnumerable<IRemoteInfo> IRepoInstanceBuilder.Remotes
+        IFluentEnumerable<IRemoteBuilder> IRepoInstanceBuilder.Remotes
         {
             get { return this._remotes; }
         }
@@ -254,18 +251,7 @@ namespace FluentGit
         //    var allBranchesFetchRefSpec = string.Format("+refs/heads/*:refs/remotes/{0}/*", remote.Name);
         //    Log.InfoFormat("Adding refspec: {0}", allBranchesFetchRefSpec);
         //    Repository.Network.Remotes.Update(remote, r => r.FetchRefSpecs.Add(allBranchesFetchRefSpec));
-        //}
-
-        internal IBranchInstanceBuilder SelectBranch(BranchInfo branchInfo)
-        {
-            _selectedBranch = branchInfo;
-            return this;
-        }
-
-        internal IRemoteInstanceBuilder SelectRemote(RemoteInfo remoteInfo)
-        {
-            throw new NotImplementedException();
-        }
+        //}     
 
 
     }
@@ -301,94 +287,20 @@ namespace FluentGit
 
     public interface IRepoInstanceBuilder
     {
-        IFluentEnumerable<IBranchInfo> Branches { get; }
-        IFluentEnumerable<IRemoteInfo> Remotes { get; }
+        IFluentEnumerable<IBranchBuilder> Branches { get; }
+        IFluentEnumerable<IRemoteBuilder> Remotes { get; }
     }
 
-    public interface IRemoteInfo
+    public interface IRemoteBuilder
     {
         string Name { get; }
-        string Url { get; }
-
-        IRemoteInstanceBuilder Use();
+        string Url { get; }        
     }
 
-    public interface IBranchInfo
+    public interface IBranchBuilder
     {
-        string Name { get; }
-        IBranchInstanceBuilder Use();
-    }
-
-    public class RemoteInfo : IRemoteInfo
-    {
-        private Remote _remote;
-        private FluentRepo _repo;
-
-        private RemoteInfo(Remote remote, FluentRepo repo)
-        {
-            _remote = remote;
-            _repo = repo;
-        }
-
-        internal static RemoteInfo FromRemote(Remote remote, FluentRepo repo)
-        {
-            var remoteInfo = new RemoteInfo(remote, repo);
-            return remoteInfo;
-        }
-
-        string IRemoteInfo.Name
-        {
-            get { return this._remote.Name; }
-        }
-
-        string IRemoteInfo.Url
-        {
-            get { return this._remote.Url; }
-        }
-
-        IRemoteInstanceBuilder IRemoteInfo.Use()
-        {
-            return _repo.SelectRemote(this);
-        }
-    }
-
-    public class BranchInfo : IBranchInfo
-    {
-        private Branch _branch;
-        private FluentRepo _repo;
-
-        private BranchInfo(Branch branch, FluentRepo repo)
-        {
-            _branch = branch;
-            _repo = repo;
-        }
-
-        string IBranchInfo.Name
-        {
-            get { return _branch.Name; }
-        }
-
-        internal static BranchInfo FromBranch(Branch branch, FluentRepo repo)
-        {
-            var branchInfo = new BranchInfo(branch, repo);
-            return branchInfo;
-        }
-
-        IBranchInstanceBuilder IBranchInfo.Use()
-        {
-            return _repo.SelectBranch(this);
-        }
-    }
-
-    public interface IBranchInstanceBuilder
-    {
-
-    }
-
-    public interface IRemoteInstanceBuilder
-    {
-
-    }
+        string Name { get; }      
+    }      
 
 
 

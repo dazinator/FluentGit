@@ -108,6 +108,25 @@ namespace FluentGit.Tests
 
         }
 
+        [Test]
+        public void Can_Iterate_Branches()
+        {
+            // add a branch tot he local repo and then test we can access it
+
+            var repository = new Repository(GitRepoPath);
+            string branchName = "testing";
+            TestUtils.AddBranch(repository, branchName);
+
+
+            var branch = new FluentRepo().Load(GitRepoPath)
+                                       .Branches.First(a => a.Name == branchName);
+
+            Assert.That(branch, Is.Not.Null);
+            Assert.That(branch.Name, Is.EqualTo(branchName));
+
+        }
+
+
         public override void TearDown()
         {
             base.TearDown();

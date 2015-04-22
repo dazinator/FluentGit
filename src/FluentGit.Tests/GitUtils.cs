@@ -18,7 +18,7 @@ namespace FluentGit.Tests
             var currentDir = Path.GetTempPath();
             var repoDir = Path.Combine(currentDir, parentFolderName, Guid.NewGuid().ToString("N"));
             return repoDir;
-        }
+        }       
 
         public static void DeleteGitDirectory(string path)
         {
@@ -60,6 +60,24 @@ namespace FluentGit.Tests
 
             var repo = new Repository(path);
 
+            // Let's move the HEAD to this branch to be created
+            var branchInfo = new GitBranchName(branchName);
+
+            repo.Refs.UpdateTarget("HEAD", branchInfo.GetCanonicalBranchName());
+            // Create a commit against HEAD
+            var c = GenerateCommit(repo);
+            var branch = repo.Branches[branchName];
+            if (branch == null)
+            {
+                Log.InfoFormat("Branch was NULL!");
+            }
+
+            return repo;
+        }
+
+        public static IRepository AddBranch(IRepository repo, string branchName)
+        {
+                    
             // Let's move the HEAD to this branch to be created
             var branchInfo = new GitBranchName(branchName);
 

@@ -17,7 +17,7 @@ namespace FluentGit.Tests
         public virtual void Setup()
         {
             GitRepoPath = TestUtils.GetUniqueTempFolder(ParentTempFolderName);
-            var testOriginRepo = TestUtils.CreateEmptyTestRepo(GitRepoPath);            
+            var testOriginRepo = TestUtils.CreateEmptyTestRepo(GitRepoPath);
         }
 
 
@@ -25,7 +25,7 @@ namespace FluentGit.Tests
         public virtual void TearDown()
         {
             TestUtils.DeleteGitDirectory(GitRepoPath);
-            Directory.Delete(GitRepoPath);
+            TestUtils.DeleteDirectory(new DirectoryInfo(GitRepoPath));
         }
 
         public string GitRepoPath { get; set; }
