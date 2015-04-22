@@ -31,7 +31,7 @@ FluentRepo.Clone
 
 ## Under the hood
 
-FluentGit uses libgit2sharp internally, and surfaces it in a fluent way. 
+FluentGit uses https://github.com/libgit2/libgit2sharp internally, and surfaces it in a fluent way. 
 
 
 
