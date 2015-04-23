@@ -1,7 +1,13 @@
 # FluentGit
-A fluent API for managing Git repositories in .NET.
+A fluent API for performing Git operations in .NET.
 
-## Load a repo and checkout a branch:
+## Why?
+
+The goal with FluentGit, is to provide an API that guides the consumer through making operations with Git, in a straightforward manner - one that's easy to read, and easy to write.
+
+##Examples
+
+### Load a repo and checkout a branch:
 
 ``` csharp
 FluentRepo.Load("C:/Myrepo/.git")
@@ -9,7 +15,7 @@ FluentRepo.Load("C:/Myrepo/.git")
     .Checkout();
 ```
 
-## Create a bare clone of a repo and checkout particular files from a partciular branch.
+### Create a bare clone of a remote repo and checkout files from the development branch.
 
 ``` csharp
 FluentRepo.Clone
@@ -23,9 +29,10 @@ FluentRepo.Clone
       .CheckoutFileIfExists("licence.txt")
 ```
 
-## Why?
+## Under the hood
 
-Because I like it and because I can! ;)
+FluentGit uses https://github.com/libgit2/libgit2sharp internally, and surfaces it in a fluent way. 
+
 
 
 
