@@ -39,17 +39,20 @@ namespace FluentGit.Tests
         [Test]
         public void Can_Build_RefSpec()
         {
+           
             IRefSpecBuilder builder = new RefSpecBuilder();
 
-            var spec = builder.Source("refs/heads/*")
-                        .Destination("refs/remotes/origin/*")
-                        .ForceUpdateIfFastForwardNotPossible()
-                        .ToRefSpec();
+            RefSpecInfo spec = builder.Source("refs/heads/*")
+                                .Destination("refs/remotes/origin/*")
+                                .ForceUpdateIfFastForwardNotPossible()
+                                .ToRefSpec();
 
             Assert.That(spec.Source, Is.EqualTo("refs/heads/*"));
             Assert.That(spec.Destination, Is.EqualTo("refs/remotes/origin/*"));
             Assert.That(spec.ForceUpdateWhenFastForwardNotAllowed);
-        }     
+
+            Assert.That(spec.ToString(), Is.EqualTo("+refs/heads/*:refs/remotes/origin/*"));
+        }
 
     }
 
