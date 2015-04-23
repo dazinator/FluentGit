@@ -54,6 +54,8 @@
     <Compile Include="GitUtils.cs" />
     <Compile Include="ProcessHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RefSpecBuilderTests.cs" />
+    <Compile Include="RefSpecInfoTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

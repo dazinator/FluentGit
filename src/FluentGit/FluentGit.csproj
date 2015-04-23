@@ -46,6 +46,8 @@
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="BranchBuilder.cs" />
+    <Compile Include="RefSpecBuilder.cs" />
+    <Compile Include="RefSpecInfo.cs" />
     <Compile Include="RemoteBuilder.cs" />
     <Compile Include="TransformItemEnumerator.cs" />
     <Compile Include="FluentEnumerable.cs" />
