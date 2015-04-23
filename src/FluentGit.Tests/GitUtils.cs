@@ -18,7 +18,7 @@ namespace FluentGit.Tests
             var currentDir = Path.GetTempPath();
             var repoDir = Path.Combine(currentDir, parentFolderName, Guid.NewGuid().ToString("N"));
             return repoDir;
-        }       
+        }
 
         public static void DeleteGitDirectory(string path)
         {
@@ -65,25 +65,7 @@ namespace FluentGit.Tests
 
             repo.Refs.UpdateTarget("HEAD", branchInfo.GetCanonicalBranchName());
             // Create a commit against HEAD
-            var c = GenerateCommit(repo);
-            var branch = repo.Branches[branchName];
-            if (branch == null)
-            {
-                Log.InfoFormat("Branch was NULL!");
-            }
-
-            return repo;
-        }
-
-        public static IRepository AddBranch(IRepository repo, string branchName)
-        {
-                    
-            // Let's move the HEAD to this branch to be created
-            var branchInfo = new GitBranchName(branchName);
-
-            repo.Refs.UpdateTarget("HEAD", branchInfo.GetCanonicalBranchName());
-            // Create a commit against HEAD
-            var c = GenerateCommit(repo);
+            var c = repo.GenerateCommit();
             var branch = repo.Branches[branchName];
             if (branch == null)
             {
@@ -100,47 +82,6 @@ namespace FluentGit.Tests
             return new Repository(path);
         }
 
-        public static Commit GenerateCommit(IRepository repository, string comment = null)
-        {
-            var randomFile = Path.Combine(repository.Info.WorkingDirectory, Guid.NewGuid().ToString());
-            File.WriteAllText(randomFile, string.Empty);
-            comment = comment ?? "Test generated commit.";
-            return CommitFile(repository, randomFile, comment);
-        }
 
-        public static Commit CommitFile(IRepository repo, string filePath, string comment)
-        {
-            repo.Stage(filePath);
-            return repo.Commit(comment, SignatureNow(), SignatureNow());
-        }
-
-        public static bool IsBareRepo(IRepository repository)
-        {
-            if (repository != null)
-            {
-                // verify there is no seperate .git directory (bare clone)
-                var directoryInfo = new DirectoryInfo(repository.Info.Path);
-                if (directoryInfo.Name == ".git")
-                {
-                    return false;
-                }
-                var gitFolders = directoryInfo.GetDirectories("*.git", SearchOption.AllDirectories);
-                return gitFolders == null || gitFolders.Count() == 0;
-            }
-
-            return false;
-
-        }
-
-        public static Signature SignatureNow()
-        {
-            var dateTimeOffset = DateTimeOffset.Now;
-            return Signature(dateTimeOffset);
-        }
-
-        public static Signature Signature(DateTimeOffset dateTimeOffset)
-        {
-            return new Signature("Billy", "billy@thesundancekid.com", dateTimeOffset);
-        }
     }
 }

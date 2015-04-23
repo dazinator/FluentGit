@@ -39,7 +39,7 @@ namespace FluentGit.Tests
             // 1. verify the clone now exists.
             var repository = new Repository(_CloneDir);
             Assert.That(repository, Is.Not.Null);
-            Assert.IsFalse(TestUtils.IsBareRepo(repository));
+            Assert.IsFalse(repository.IsBareRepo());
 
         }
 
@@ -61,7 +61,7 @@ namespace FluentGit.Tests
             // Assert
             // 1. verify the clone now exists, and its a bare repo.
             var repository = new Repository(_CloneDir);
-            Assert.IsTrue(TestUtils.IsBareRepo(repository));
+            Assert.IsTrue(repository.IsBareRepo());
 
         }
 
@@ -83,7 +83,7 @@ namespace FluentGit.Tests
             // 1. verify the clone now exists.
             var repository = new Repository(_CloneDir);
             Assert.That(repository, Is.Not.Null);
-            Assert.IsFalse(TestUtils.IsBareRepo(repository));
+            Assert.IsFalse(repository.IsBareRepo());
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace FluentGit.Tests
             // Assert
             // 1. verify the clone now exists.
             var repository = new Repository(_CloneDir);
-            Assert.IsTrue(TestUtils.IsBareRepo(repository));
+            Assert.IsTrue(repository.IsBareRepo());
 
         }
 
@@ -112,29 +112,49 @@ namespace FluentGit.Tests
         public void Can_Iterate_Branches()
         {
             // add a branch tot he local repo and then test we can access it
-
             var repository = new Repository(GitRepoPath);
             string branchName = "testing";
-            TestUtils.AddBranch(repository, branchName);
+            repository.AddBranch(branchName);
 
 
             var branch = new FluentRepo().Load(GitRepoPath)
-                                       .Branches.First(a => a.Name == branchName);
+                                         .Branches.First(a => a.Name == "testing");
 
             Assert.That(branch, Is.Not.Null);
             Assert.That(branch.Name, Is.EqualTo(branchName));
 
         }
 
+        [Test]
+        public void Can_Iterate_Remotes()
+        {
+            // add a remote to the local repo and then test we can access it
+            var repository = new Repository(GitRepoPath);
+            repository.Network.Remotes.Add("fluentgit", "https://github.com/dazinator/FluentGit.git");
+
+            // Act
+            var remote = new FluentRepo().Load(GitRepoPath)
+                                         .Remotes.First(a => a.Name == "fluentgit");
+
+            // Assert
+            Assert.That(remote, Is.Not.Null);
+            Assert.That(remote.Name, Is.EqualTo("fluentgit"));
+            Assert.That(remote.Url, Is.EqualTo("https://github.com/dazinator/FluentGit.git"));
+        }
+
 
         public override void TearDown()
         {
             base.TearDown();
-            var cloneDir = new DirectoryInfo(_CloneDir);
-            if (cloneDir.Exists)
+            if (!string.IsNullOrEmpty(_CloneDir))
             {
-                TestUtils.DeleteDirectory(cloneDir);
+                var cloneDir = new DirectoryInfo(_CloneDir);
+                if (cloneDir.Exists)
+                {
+                    TestUtils.DeleteDirectory(cloneDir);
+                }
             }
+
 
         }
 

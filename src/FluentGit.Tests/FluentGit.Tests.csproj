@@ -50,7 +50,9 @@
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="BaseEmptyRepoTest.cs" />
     <Compile Include="FluentRepoTests.cs" />
+    <Compile Include="GitTestExtensions.cs" />
     <Compile Include="GitUtils.cs" />
+    <Compile Include="ProcessHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
