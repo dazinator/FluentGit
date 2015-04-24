@@ -29,6 +29,22 @@ FluentRepo.Clone
       .CheckoutFileIfExists("licence.txt")
 ```
 
+### Adding remotes.
+``` csharp
+ var fluentRepo = new FluentRepo().Load(GitRepoPath)
+                                          .AddRemote(a =>
+                                             a.WithName("fluentgit")
+                                              .WithUrl("https://github.com/dazinator/FluentGit.git")
+                                              .WithFetchRefSpec(r =>
+                                                  r.Source("refs/heads/master")
+                                                   .Destination("refs/remotes/fluentgit/master")
+                                                   .ForceUpdateIfFastForwardNotPossible()))
+                                         .AddRemote(a =>
+                                             a.WithName("libgit2sharp")
+                                              .WithUrl("https://github.com/libgit2/libgit2sharp.git")
+                                              .WithFetchRefSpec("+refs/heads/master:refs/remotes/libgit2sharp/master"));
+```
+
 ## Under the hood
 
 FluentGit uses https://github.com/libgit2/libgit2sharp internally, and surfaces it in a fluent way. 
