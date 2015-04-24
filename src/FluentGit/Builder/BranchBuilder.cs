@@ -28,5 +28,7 @@ namespace FluentGit
             return branchInfo;
         }
 
+
+       
     }
 }

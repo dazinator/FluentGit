@@ -36,7 +36,6 @@ namespace FluentGit
                         ICloneFromUrlOptions,
                         ICloneFromLocalDirectoryOptions,
                         ICloneAdditionalOptionsBuilder
-                      
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
@@ -46,7 +45,7 @@ namespace FluentGit
         private CloneArgs _cloneSetupArgs;
 
         private FluentEnumerable<IBranchBuilder> _branches;
-        private FluentEnumerable<IRemoteBuilder> _remotes;      
+        private RemotesBuilder _remotes;
 
 
         public IRepoInstanceBuilder Load(string gitFolderPath)
@@ -162,7 +161,7 @@ namespace FluentGit
             // We will wrap the underlying libgitsharp enumerators, with our own that implicitly cast types.
             var remotesEnumerator = this._repository.Network.Remotes.GetEnumerator();
             var castingEnumerator = new TransformItemEnumerator<Remote, IRemoteBuilder>(remotesEnumerator, f => RemoteBuilder.FromRemote(f, this));
-            this._remotes = new FluentEnumerable<IRemoteBuilder>(castingEnumerator);
+            this._remotes = new RemotesBuilder(this,castingEnumerator);
 
             var branchesEnumerator = this._repository.Branches.GetEnumerator();
             var castingBranchesEnumerator = new TransformItemEnumerator<Branch, IBranchBuilder>(branchesEnumerator, f => BranchBuilder.FromBranch(f, this));
@@ -174,9 +173,32 @@ namespace FluentGit
             get { return this._branches; }
         }
 
-        IFluentEnumerable<IRemoteBuilder> IRepoInstanceBuilder.Remotes
+        IRemotesBuilder IRepoInstanceBuilder.Remotes
         {
             get { return this._remotes; }
+        }
+
+        IRepoInstanceBuilder IRepoInstanceBuilder.AddRemote(Action<INewRemoteBuilder> remote)
+        {
+            var newRemoteBuilder = new NewRemoteBuilder();
+            remote(newRemoteBuilder);
+            this.AddRemote(newRemoteBuilder);
+            return this;
+        }
+
+        internal void AddRemote(NewRemoteBuilder newRemoteBuilder)
+        {
+            string remoteName = newRemoteBuilder.Name;
+            string url = newRemoteBuilder.Url;
+            if (newRemoteBuilder.FetchRefSpec != null)
+            {
+                this._repository.Network.Remotes.Add(remoteName, url, newRemoteBuilder.FetchRefSpec.ToString());
+            }
+            else
+            {
+                this._repository.Network.Remotes.Add(remoteName, url);
+            }         
+
         }
 
         //private Remote EnsureSingleRemoteIsDefined()
@@ -251,9 +273,8 @@ namespace FluentGit
         //    var allBranchesFetchRefSpec = string.Format("+refs/heads/*:refs/remotes/{0}/*", remote.Name);
         //    Log.InfoFormat("Adding refspec: {0}", allBranchesFetchRefSpec);
         //    Repository.Network.Remotes.Update(remote, r => r.FetchRefSpecs.Add(allBranchesFetchRefSpec));
-        //}     
-
-
+        //}                          
+     
     }
 
     public interface IRepoFactoryBuilder
@@ -288,20 +309,26 @@ namespace FluentGit
     public interface IRepoInstanceBuilder
     {
         IFluentEnumerable<IBranchBuilder> Branches { get; }
-        IFluentEnumerable<IRemoteBuilder> Remotes { get; }
+        IRemotesBuilder Remotes { get; }
+        IRepoInstanceBuilder AddRemote(Action<INewRemoteBuilder> remote);       
+    }
+
+    public interface IRemotesBuilder : IFluentEnumerable<IRemoteBuilder>
+    {
+        //IRemotesBuilder Add(Action<INewRemoteBuilder> remote);
     }
 
     public interface IRemoteBuilder
     {
+        string Url { get; }
         string Name { get; }
-        string Url { get; }        
-    }
+    }  
 
     public interface IBranchBuilder
     {
-        string Name { get; }      
-    }      
+        string Name { get; }
 
+    }
 
 
 }

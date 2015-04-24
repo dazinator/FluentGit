@@ -45,13 +45,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
-    <Compile Include="BranchBuilder.cs" />
-    <Compile Include="RefSpecBuilder.cs" />
+    <Compile Include="Builder\BranchBuilder.cs" />
+    <Compile Include="Interfaces\INewRemoteBuilder.cs" />
+    <Compile Include="Interfaces\IRefSpecBuilder.cs" />
+    <Compile Include="Builder\NewRemoteBuilder.cs" />
+    <Compile Include="Builder\RefSpecBuilder.cs" />
     <Compile Include="RefSpecInfo.cs" />
-    <Compile Include="RemoteBuilder.cs" />
+    <Compile Include="Builder\RemoteBuilder.cs" />
+    <Compile Include="Builder\RemotesBuilder.cs" />
     <Compile Include="TransformItemEnumerator.cs" />
     <Compile Include="FluentEnumerable.cs" />
-    <Compile Include="IFluentEnumerable.cs" />
+    <Compile Include="Interfaces\IFluentEnumerable.cs" />
     <Compile Include="Repo.cs" />
     <Compile Include="GitBranchName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

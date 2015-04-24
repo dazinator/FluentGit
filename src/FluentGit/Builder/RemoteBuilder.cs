@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 
 namespace FluentGit
-{
+{   
+
     public class RemoteBuilder : IRemoteBuilder
     {
         private Remote _remote;
@@ -32,5 +33,6 @@ namespace FluentGit
         {
             get { return this._remote.Url; }
         }
+
     }
 }

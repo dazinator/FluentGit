@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace FluentGit
-{  
-
+{     
     public class FluentEnumerable<T> : IFluentEnumerable<T>
     {
         private IEnumerator<T> _enumerator;

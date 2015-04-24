@@ -132,6 +132,8 @@ namespace FluentGit.Tests
             var repository = new Repository(GitRepoPath);
             repository.Network.Remotes.Add("fluentgit", "https://github.com/dazinator/FluentGit.git");
 
+            //
+
             // Act
             var remote = new FluentRepo().Load(GitRepoPath)
                                          .Remotes.First(a => a.Name == "fluentgit");
@@ -141,6 +143,57 @@ namespace FluentGit.Tests
             Assert.That(remote.Name, Is.EqualTo("fluentgit"));
             Assert.That(remote.Url, Is.EqualTo("https://github.com/dazinator/FluentGit.git"));
         }
+
+        [Test]
+        public void Can_Add_Remote()
+        {
+            // Act
+            var remote = new FluentRepo().Load(GitRepoPath)
+                                         .AddRemote(a =>
+                                             a.WithName("fluentgit")
+                                              .WithUrl("https://github.com/dazinator/FluentGit.git"));
+
+
+            var repository = new Repository(GitRepoPath);
+            var addedRemote = repository.Network.Remotes.Single(a => a.Name == "fluentgit" && a.Url == "https://github.com/dazinator/FluentGit.git");
+
+        }
+
+
+        [Test]
+        public void Can_Add_Multliple_Remotes_And_Specify_Fecth_RefSpec()
+        {
+            // Act
+            var fluentRepo = new FluentRepo().Load(GitRepoPath)
+                                          .AddRemote(a =>
+                                             a.WithName("fluentgit")
+                                              .WithUrl("https://github.com/dazinator/FluentGit.git")
+                                              .WithFetchRefSpec(r =>
+                                                  r.Source("refs/heads/master")
+                                                   .Destination("refs/remotes/fluentgit/master")
+                                                   .ForceUpdateIfFastForwardNotPossible()))
+                                         .AddRemote(a =>
+                                             a.WithName("libgit2sharp")
+                                              .WithUrl("https://github.com/libgit2/libgit2sharp.git")
+                                              .WithFetchRefSpec("refs/heads/master:refs/remotes/libgit2sharp/master"));
+
+
+            var repository = new Repository(GitRepoPath);
+            var addedRemote = repository.Network.Remotes.Single(a => a.Name == "fluentgit" && a.Url == "https://github.com/dazinator/FluentGit.git");
+            var refSpec = addedRemote.FetchRefSpecs.Single();
+
+            Assert.That(refSpec.Source == "refs/heads/master");
+            Assert.That(refSpec.Destination == "refs/remotes/fluentgit/master");
+            Assert.That(refSpec.ForceUpdate);
+
+            var anotherAddedRemote = repository.Network.Remotes.Single(a => a.Name == "libgit2sharp" && a.Url == "https://github.com/libgit2/libgit2sharp.git");
+            refSpec = anotherAddedRemote.FetchRefSpecs.Single();
+
+            Assert.That(refSpec.Source == "refs/heads/master");
+            Assert.That(refSpec.Destination == "refs/remotes/libgit2sharp/master");
+            Assert.IsFalse(refSpec.ForceUpdate);
+        }
+
 
 
         public override void TearDown()
