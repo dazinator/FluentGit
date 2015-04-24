@@ -7,14 +7,6 @@ The goal with FluentGit, is to provide an API that guides the consumer through m
 
 ##Examples
 
-### Simple example.. Load a repo and checkout a branch:
-
-``` csharp
-FluentRepo.Load("C:/Myrepo/.git")
-  .WithBranch("development")
-    .Checkout();
-```
-
 ### Complex example - demonstrating a larger surface of the API.
 
 This example:
