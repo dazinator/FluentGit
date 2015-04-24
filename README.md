@@ -17,6 +17,15 @@ FluentRepo.Load("C:/Myrepo/.git")
 
 ### Complex example - demonstrating a larger surface of the API.
 
+This example:
+
+1. Performs a bare clone of a repo - using authentication credentials.
+2. Adds a remote named "fluentgit", with fetch refspecs (using refspec builder api)
+3. Adds another remote named "libgit2sharp" with fetch refspecs (using refspec specified as a string)
+4. Switches to the "development" branch
+5. Checks out a "readme.txt" file
+6. If it exists, checks out a licence.txt file.
+
 ``` csharp
  var repo = new FluentRepo().Clone()
                 .FromUrl("http://someurl.git")
@@ -38,12 +47,6 @@ FluentRepo.Load("C:/Myrepo/.git")
                 .WithBranch("development")
                   .CheckoutFile("readme.txt")
                   .CheckoutFileIfExists("licence.txt")
-```
-
-### Adding remotes.
-``` csharp
- var fluentRepo = new FluentRepo().Load(GitRepoPath)
-                                          
 ```
 
 ## Under the hood
