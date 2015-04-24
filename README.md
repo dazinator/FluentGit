@@ -3,11 +3,15 @@ A fluent API for performing Git operations in .NET.
 
 ## Why?
 
-The goal with FluentGit, is to provide an API that guides the consumer through making operations with Git, in a straightforward manner - one that's easy to read, and easy to write.
+Well, [libgit2sharp](https://github.com/libgit2/libgit2sharp) provides a great object model for working with git repositories.
+
+The goal of FluentGit is to provide a Fluent API that makes it quicker and easier to accomplish things, than using the `libgit2sharp` object model directly.
+
+For example, rather than having to write 50 lines of code with `libgit2sharp` to instantiate a repo, add a remote, checkout a branch and checkout files, you could achieve the same things using `FluentGit` in say, only 10 lines - and also benefit from being guided through each operation by the fluent API (and intellisense) every step of the way.
 
 ##Examples
 
-### Complex example - demonstrating a larger surface of the API.
+### Complex example - aim's to demonstrate a decent surface of the API.
 
 This example:
 
