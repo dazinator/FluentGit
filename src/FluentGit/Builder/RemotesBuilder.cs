@@ -6,11 +6,11 @@ using System.Text;
 
 namespace FluentGit
 {
-    public class RemotesBuilder : FluentEnumerable<IRemoteBuilder>, IRemotesBuilder
+    public class RemotesBuilder : FluentEnumerable<IRemoteInfo>, IRemotesBuilder
     {
         private FluentRepo _repo;
 
-        public RemotesBuilder(FluentRepo repo, IEnumerator<IRemoteBuilder> enumerator)
+        public RemotesBuilder(FluentRepo repo, IEnumerator<IRemoteInfo> enumerator)
             : base(enumerator)
         {
             _repo = repo;
@@ -18,7 +18,7 @@ namespace FluentGit
 
        
 
-        IEnumerator<IRemoteBuilder> IEnumerable<IRemoteBuilder>.GetEnumerator()
+        IEnumerator<IRemoteInfo> IEnumerable<IRemoteInfo>.GetEnumerator()
         {
             return base.GetEnumerator();
         }

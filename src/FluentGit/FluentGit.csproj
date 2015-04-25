@@ -46,6 +46,8 @@
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Builder\BranchBuilder.cs" />
+    <Compile Include="Builder\UpdateRemoteBuilder.cs" />
+    <Compile Include="Interfaces\IUpdateRemoteBuilder.cs" />
     <Compile Include="Interfaces\INewRemoteBuilder.cs" />
     <Compile Include="Interfaces\IRefSpecBuilder.cs" />
     <Compile Include="Builder\NewRemoteBuilder.cs" />

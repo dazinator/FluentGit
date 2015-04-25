@@ -160,8 +160,8 @@ namespace FluentGit
         {
             // We will wrap the underlying libgitsharp enumerators, with our own that implicitly cast types.
             var remotesEnumerator = this._repository.Network.Remotes.GetEnumerator();
-            var castingEnumerator = new TransformItemEnumerator<Remote, IRemoteBuilder>(remotesEnumerator, f => RemoteBuilder.FromRemote(f, this));
-            this._remotes = new RemotesBuilder(this,castingEnumerator);
+            var castingEnumerator = new TransformItemEnumerator<Remote, IRemoteInfo>(remotesEnumerator, f => RemoteInfo.FromRemote(f));
+            this._remotes = new RemotesBuilder(this, castingEnumerator);
 
             var branchesEnumerator = this._repository.Branches.GetEnumerator();
             var castingBranchesEnumerator = new TransformItemEnumerator<Branch, IBranchBuilder>(branchesEnumerator, f => BranchBuilder.FromBranch(f, this));
@@ -186,6 +186,18 @@ namespace FluentGit
             return this;
         }
 
+        IRepoInstanceBuilder IRepoInstanceBuilder.AddRemoteIfDoesNotExist(Action<INewRemoteBuilder> remote)
+        {
+            var newRemoteBuilder = new NewRemoteBuilder();
+            remote(newRemoteBuilder);
+            var existingRemote = this._remotes.FirstOrDefault(r => r.Name.ToLowerInvariant() == newRemoteBuilder.Name.ToLower());
+            if (existingRemote != null)
+            {
+                this.AddRemote(newRemoteBuilder);
+            }
+            return this;
+        }
+
         internal void AddRemote(NewRemoteBuilder newRemoteBuilder)
         {
             string remoteName = newRemoteBuilder.Name;
@@ -197,7 +209,7 @@ namespace FluentGit
             else
             {
                 this._repository.Network.Remotes.Add(remoteName, url);
-            }         
+            }
 
         }
 
@@ -274,7 +286,58 @@ namespace FluentGit
         //    Log.InfoFormat("Adding refspec: {0}", allBranchesFetchRefSpec);
         //    Repository.Network.Remotes.Update(remote, r => r.FetchRefSpecs.Add(allBranchesFetchRefSpec));
         //}                          
-     
+
+        IRepoInstanceBuilder IRepoInstanceBuilder.UpdateRemote(Func<IRemoteInfo, bool> selector, Action<IUpdateRemoteBuilder> updater)
+        {
+            var existingRemote = this._remotes.FirstOrDefault(selector);
+            if (existingRemote != null)
+            {
+                var remote = ((RemoteInfo)existingRemote).Remote;
+                var newRemoteBuilder = new UpdateRemoteBuilder(this, remote);
+                updater(newRemoteBuilder);
+                var updaters = newRemoteBuilder.GetRemoteUpdaters();
+                UpdateRemote(remote, updaters);
+            }
+            else
+            {
+                throw new InvalidOperationException("Could not update remote, as no remote was found with the criteria specified.");
+            }
+            return this;
+        }
+
+        IRepoInstanceBuilder IRepoInstanceBuilder.UpdateRemoteIfExists(Func<IRemoteInfo, bool> selector, Action<IUpdateRemoteBuilder> updater)
+        {
+            var existingRemote = this._remotes.FirstOrDefault(selector);
+            if (existingRemote != null)
+            {
+                var remote = ((RemoteInfo)existingRemote).Remote;
+                var newRemoteBuilder = new UpdateRemoteBuilder(this, remote);
+                updater(newRemoteBuilder);
+                var updaters = newRemoteBuilder.GetRemoteUpdaters();
+                UpdateRemote(remote, updaters);
+            }
+            return this;
+        }
+
+        IRepoInstanceBuilder IRepoInstanceBuilder.UpdateRemotes(Func<IRemoteInfo, bool> filter, Action<IUpdateRemoteBuilder> updater)
+        {
+            var existingRemotes = this._remotes.Where(filter);
+            foreach (var existingRemote in existingRemotes)
+            {
+                var remote = ((RemoteInfo)existingRemote).Remote;
+                var newRemoteBuilder = new UpdateRemoteBuilder(this, remote);
+                updater(newRemoteBuilder);
+                var updaters = newRemoteBuilder.GetRemoteUpdaters();
+                UpdateRemote(remote, updaters);
+            }
+            return this;
+        }
+
+        internal Remote UpdateRemote(Remote remote, IList<Action<RemoteUpdater>> updaters)
+        {
+            return this._repository.Network.Remotes.Update(remote, updaters.ToArray());
+        }
+
     }
 
     public interface IRepoFactoryBuilder
@@ -310,19 +373,25 @@ namespace FluentGit
     {
         IFluentEnumerable<IBranchBuilder> Branches { get; }
         IRemotesBuilder Remotes { get; }
-        IRepoInstanceBuilder AddRemote(Action<INewRemoteBuilder> remote);       
+        IRepoInstanceBuilder AddRemote(Action<INewRemoteBuilder> adder);
+        IRepoInstanceBuilder AddRemoteIfDoesNotExist(Action<INewRemoteBuilder> adder);
+
+        IRepoInstanceBuilder UpdateRemoteIfExists(Func<IRemoteInfo, bool> selector, Action<IUpdateRemoteBuilder> updater);
+        IRepoInstanceBuilder UpdateRemote(Func<IRemoteInfo, bool> selector, Action<IUpdateRemoteBuilder> updater);
+        IRepoInstanceBuilder UpdateRemotes(Func<IRemoteInfo, bool> filter, Action<IUpdateRemoteBuilder> updater);
+
     }
 
-    public interface IRemotesBuilder : IFluentEnumerable<IRemoteBuilder>
+    public interface IRemotesBuilder : IFluentEnumerable<IRemoteInfo>
     {
         //IRemotesBuilder Add(Action<INewRemoteBuilder> remote);
     }
 
-    public interface IRemoteBuilder
+    public interface IRemoteInfo
     {
         string Url { get; }
         string Name { get; }
-    }  
+    }
 
     public interface IBranchBuilder
     {

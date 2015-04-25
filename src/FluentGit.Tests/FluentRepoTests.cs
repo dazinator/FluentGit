@@ -195,6 +195,65 @@ namespace FluentGit.Tests
         }
 
 
+        [Test]
+        public void Can_Update_Remote()
+        {
+            // Arrange
+            // add a remote to the local repo and then test we can access it
+
+            using (var repository = new Repository(GitRepoPath))
+            {
+                repository.Network.Remotes.Add("fluentgit", "https://github.com/dazinator/FluentGit.git", "+refs/heads/*:refs/remotes/fluentgit/*");
+            }
+
+
+            // Act
+            var repo = new FluentRepo()
+                                .Load(GitRepoPath)
+                                .UpdateRemote(r => r.Name == "fluentgit",
+                                    u =>
+                                        u.ChangeUrlTo("https://github.com/libgit2/libgit2sharp.git")
+                                         .ChangeRefSpecs()
+                                            .Add("+refs/heads/master:refs/remotes/fluentgit/master")
+                                        // can alternatively use RefSpecBuilder to build refspec strings:
+                                            .Add(b =>
+                                             b.Source("refs/heads/master")
+                                              .Destination("refs/other/fluentgit/master")
+                                              .ForceUpdateIfFastForwardNotPossible())
+
+                                            .AddIfNotExists("+refs/heads/*:refs/remotes/fluentgit/*")
+                                            .Remove("+refs/heads/somebranch:refs/remotes/somebranch"))
+
+                                .UpdateRemoteIfExists(r => r.Url == "non existing url",
+                                    u =>
+                                        // as the remote doesn't exist in this case, none of the below updates will execute.
+                                        u.ChangeUrlTo("http://someurl.com")
+                                         .ChangeRefSpecs()
+                                            .Add("+whatever/*:whatever/*")
+                                            .Remove("+blah/*:blah/*"));
+
+            //Assert
+
+            using (var repository = new Repository(GitRepoPath))
+            {
+                // remote url should have been changed.
+                var updatedRemote = repository.Network.Remotes.Single(a => a.Name == "fluentgit" && a.Url == "https://github.com/libgit2/libgit2sharp.git");
+
+                // refspec should be added:     "+refs/heads/master:refs/remotes/fluentgit/master"
+                updatedRemote.FetchRefSpecs.Single(a => a.Specification.ToLower() == "+refs/heads/master:refs/remotes/fluentgit/master");
+
+                // refspec should not exist twice:     "+refs/heads/*:refs/remotes/fluentgit/*"
+                updatedRemote.FetchRefSpecs.Single(a => a.Specification.ToLower() == "+refs/heads/*:refs/remotes/fluentgit/*");
+
+                // refspec should not be present: "+refs/heads/somebranch:refs/remotes/somebranch"
+                Assert.IsFalse(updatedRemote.FetchRefSpecs.Any(a => a.Specification.ToLower() == "+refs/heads/somebranch:refs/remotes/somebranch"));
+
+                // remote should not exist.
+                Assert.IsFalse(repository.Network.Remotes.Any(a => a.Url == "non existing url"));
+
+            }
+        }
+
 
         public override void TearDown()
         {
