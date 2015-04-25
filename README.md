@@ -13,17 +13,6 @@ For example, rather than having to write 50 lines of code with `libgit2sharp` to
 
 ### Complex example - aim's to demonstrate a decent surface of the API.
 
-This example:
-
-1. Performs a bare clone of a repo - using authentication credentials.
-2. Adds a remote named "fluentgit", with fetch refspecs (using refspec builder api)
-3. Adds another remote named "libgit2sharp" with fetch refspecs (using refspec specified as a string)
-4. Updates the "fluentgit" remote, to change it's URL, and also add in further fetch refspecs - as well as remove a refspec.
-5. Updates a remote with the url "non existing url" if it exists.
-6. Switches to the "development" branch
-5. Checks out a "readme.txt" file
-6. If it exists, checks out a licence.txt file.
-
 ``` csharp
  var repo = new FluentRepo().Clone()
                 .FromUrl("http://someurl.git")
@@ -65,6 +54,17 @@ This example:
                   .CheckoutFile("readme.txt")
                   .CheckoutFileIfExists("licence.txt")
 ```
+
+The above code should be self explanatory, but just in case - it demonstrates the following:-
+
+1. Performs a bare clone of a repo - using authentication credentials.
+2. Adds a remote named "fluentgit", with fetch refspecs (using refspec builder api)
+3. Adds another remote named "libgit2sharp" with fetch refspecs (using refspec specified as a string)
+4. Updates the "fluentgit" remote, to change it's URL, and also add in further fetch refspecs - as well as remove a fetch refspec.
+5. Updates the remote that has the url "non existing url" - if it exists, and adds and removes fetch ref specs.
+6. Switches to the "development" branch
+7. Checks out a "readme.txt" file
+8. If it exists, checks out a licence.txt file.
 
 ## Under the hood
 
