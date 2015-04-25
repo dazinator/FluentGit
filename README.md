@@ -18,7 +18,9 @@ This example:
 1. Performs a bare clone of a repo - using authentication credentials.
 2. Adds a remote named "fluentgit", with fetch refspecs (using refspec builder api)
 3. Adds another remote named "libgit2sharp" with fetch refspecs (using refspec specified as a string)
-4. Switches to the "development" branch
+4. Updates the "fluentgit" remote, to change it's URL, and also add in further fetch refspecs - as well as remove a refspec.
+5. Updates a remote with the url "non existing url" if it exists.
+6. Switches to the "development" branch
 5. Checks out a "readme.txt" file
 6. If it exists, checks out a licence.txt file.
 
